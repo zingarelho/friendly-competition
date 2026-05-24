@@ -27,14 +27,14 @@
 │  │TabSwitch │ │RaceCard  │ │ Leaderboard      │ │
 │  │PredictForm│ │RaceInfo  │ │ PredictionsView  │ │
 │  │UserMgmt  │ │          │ │                  │ │
-│  └────┬─────┘ └────┬─────┘ └────────┬─────────┘ │
-│       └─────────────┼────────────────┘           │
-│                     ▼                            │
-│            ┌────────────────┐                    │
-│            │  useAppData()  │                    │
-│            │  (data hook)   │                    │
-│            └───────┬────────┘                    │
-└────────────────────┼────────────────────────────┘
+│  └────┬─────┘ └────┬─────┘ └────┬─────────────┘ │
+│       └─────────────┼─────────────┼─────────────┘ │
+│                     ▼             ▼               │
+│            ┌────────────────┐ ┌────────────────┐  │
+│            │  useAppData()  │ │  API Cache     │  │
+│            │  (data hook)   │ │  (local/pg)    │  │
+│            └───────┬────────┘ └───────┬────────┘  │
+└────────────────────┼─────────────────────────────┘
                      │ fetch()
                      ▼
 ┌─────────────────────────────────────────────────┐
@@ -122,6 +122,43 @@
 3. Server saves to DB (with 300ms delay between requests to avoid rate limiting)
 4. Hook re-fetches from DB → UI updates
 
+## Key Improvements from Original Review
+
+### ✅ Fixed Issues
+- **Input validation**: PredictionForm validates exactly 5 unique 3-letter codes
+- **No `st.rerun()`**: SPA architecture with client-side state, zero full page reloads
+- **Rate limiting**: 300ms delay between Jolpica API requests prevents overload
+- **Driver reference**: User Management tab shows driver codes with team colors
+- **Carry-forward indicator**: Race cards show visual indicator when prediction is carried forward
+- **Separate loading states**: Distinguishes between initial load and manual refresh
+
+### 🔧 Technical Details
+
+#### Loading States
+The `useAppData` hook now tracks two separate boolean states:
+- `isLoading`: True during initial data fetch when the app mounts
+- `isRefreshing`: True when user manually triggers a data refresh
+
+This allows the Race Info tab to show a spinner specifically for refresh operations while still showing initial loading state on app start.
+
+#### Carry-Forward Indicator
+When a user has not submitted a prediction for a race, the system carries forward their last valid prediction (with a 50% penalty). The RaceCard component now shows:
+```
+[⚠️] Carried forward from a prior race
+```
+above the prediction breakdown when `isCarryForward` is true.
+
+#### Environment Detection
+The app auto-detects its environment:
+```typescript
+const isVercel = process.env.VERCEL === "1" || process.env.NEXT_PUBLIC_VERCEL === "1";
+```
+
+- **Local dev** (`VERCEL` not set): Uses `db-sqlite.ts` → `better-sqlite3` → `data/friendly.db`
+- **Vercel production** (`VERCEL=1`): Uses `db-postgres.ts` → `@vercel/postgres` → Vercel Postgres
+
+Both modules implement the same function signatures, making the swap transparent to API routes.
+
 ## Scoring Engine
 
 Ported from `f1_engine.py` (Streamlit version) to TypeScript in `src/lib/scoring.ts`.
@@ -141,18 +178,6 @@ calculatePoints(picks: string[], results: RaceResult[], isLate?: boolean, isMiss
 
 calculateDriverBreakdown(picks: string[], results: RaceResult[], isLate?: boolean, isMissing?: boolean): ScoredPrediction
 ```
-
-## Environment Detection
-
-The app auto-detects its environment:
-```typescript
-const isVercel = process.env.VERCEL === "1" || process.env.NEXT_PUBLIC_VERCEL === "1";
-```
-
-- **Local dev** (`VERCEL` not set): Uses `db-sqlite.ts` → `better-sqlite3` → `data/friendly.db`
-- **Vercel production** (`VERCEL=1`): Uses `db-postgres.ts` → `@vercel/postgres` → Vercel Postgres
-
-Both modules implement the same function signatures, making the swap transparent to API routes.
 
 ## Jolpica API Integration
 

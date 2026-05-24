@@ -7,76 +7,86 @@ import { RefreshCw, Loader2 } from "lucide-react";
 
 interface RaceInfoProps {
   races: RaceWithResults[];
-  onRefresh: () => void;
-  onRefreshSingle: (round: number) => void;
-  isRefreshing: boolean;
+  onRefresh: () => Promise<void>;
+  isRefreshing: boolean; // New prop
 }
 
-export function RaceInfo({ races, onRefresh, onRefreshSingle, isRefreshing }: RaceInfoProps) {
-  const [showOnlyFinished, setShowOnlyFinished] = useState(false);
+export function RaceInfo({ races, onRefresh, isRefreshing }: RaceInfoProps) {
+  const [activeTab, setActiveTab] = useState<"all" | "finished" | "scheduled">(
+    "all"
+  );
 
-  const filteredRaces = showOnlyFinished
-    ? races.filter((r) => r.status === "finished")
-    : races;
-
-  const finishedCount = races.filter((r) => r.status === "finished").length;
+  const filteredRaces = races.filter((race) => {
+    if (activeTab === "finished") return race.status === "finished";
+    if (activeTab === "scheduled") return race.status === "scheduled";
+    return true; // "all"
+  });
 
   return (
-    <div className="animate-fade-in">
-      {/* Controls */}
-      <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
-        <div className="flex items-center gap-3">
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center gap-4">
+        <h2 className="text-2xl font-bold text-white">Race Calendar & Results</h2>
+        <div className="flex space-x-2 text-sm">
           <button
-            onClick={onRefresh}
-            disabled={isRefreshing}
-            className="flex items-center gap-2 px-4 py-2 bg-accent text-white text-sm font-semibold rounded-lg hover:bg-accent-hover transition-colors disabled:opacity-50"
-          >
-            {isRefreshing ? (
-              <Loader2 size={14} className="animate-spin" />
-            ) : (
-              <RefreshCw size={14} />
-            )}
-            Refresh All Data
-          </button>
-          <span className="text-xs text-foreground-muted">
-            {finishedCount} of {races.length} races completed
-          </span>
-        </div>
-        <div className="flex gap-1 bg-background-elevated border border-border rounded-lg p-1">
-          <button
-            onClick={() => setShowOnlyFinished(false)}
-            className={`px-3 py-1.5 text-xs font-semibold uppercase tracking-wider rounded transition-colors ${
-              !showOnlyFinished ? "bg-accent text-white" : "text-foreground-muted hover:text-foreground"
+            onClick={() => setActiveTab("all")}
+            className={`btn-ghost ${
+              activeTab === "all" ? "bg-red-900/20" : ""
             }`}
           >
             All
           </button>
           <button
-            onClick={() => setShowOnlyFinished(true)}
-            className={`px-3 py-1.5 text-xs font-semibold uppercase tracking-wider rounded transition-colors ${
-              showOnlyFinished ? "bg-accent text-white" : "text-foreground-muted hover:text-foreground"
+            onClick={() => setActiveTab("finished")}
+            className={`btn-ghost ${
+              activeTab === "finished" ? "bg-red-900/20" : ""
             }`}
           >
-            Finished ({finishedCount})
+            Finished
+          </button>
+          <button
+            onClick={() => setActiveTab("scheduled")}
+            className={`btn-ghost ${
+              activeTab === "scheduled" ? "bg-red-900/20" : ""
+            }`}
+          >
+            Scheduled
           </button>
         </div>
       </div>
 
-      {/* Race cards */}
-      {filteredRaces.map((race) => (
-        <div key={race.round} className="relative">
-          <RaceCard race={race} compact />
-          {race.status === "finished" && (
-            <button
-              onClick={() => onRefreshSingle(race.round)}
-              className="absolute top-3 right-3 text-xs text-foreground-muted hover:text-accent transition-colors"
-              title="Refresh this race"
-            >
-              <RefreshCw size={12} />
-            </button>
-          )}
+      {filteredRaces.length === 0 ? (
+        <p className="text-center text-muted py-8">
+          No races match the selected filter.
+        </p>
+      ) : (
+        <div className="space-y-4">
+          {filteredRaces.map((race) => (
+            <RaceCard key={race.round} race={race} />
+          ))}
         </div>
-      ))}
+      )}
+
+      <div className="flex justify-end">
+        <button
+          onClick={onRefresh}
+          disabled={isRefreshing}
+          className={`btn-ghost w-fit ${
+            isRefreshing ? "opacity-50" : ""
+          }`}
+        >
+          {isRefreshing ? (
+            <>
+              <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+              Refreshing...
+            </>
+          ) : (
+            <>
+              <RefreshCw className="mr-2" />
+              Refresh All Data
+            </>
+          )}
+        </button>
+      </div>
     </div>
   );
 }
