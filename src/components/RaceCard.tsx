@@ -22,27 +22,27 @@ export function RaceCard({ race, prediction, scored, isCarryForward, compact }: 
       ${compact ? "mb-2" : "mb-4"}
     `}>
       {/* Card Header */}
-      <div className="flex items-center justify-between px-4 py-3 bg-background-elevated border-b border-border">
-        <div className="flex items-center gap-3">
-          <span className="text-2xl font-mono font-bold text-accent w-8 text-center">
+      <div className="flex items-center justify-between px-3 sm:px-4 py-3 bg-background-elevated border-b border-border">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          <span className="text-xl sm:text-2xl font-mono font-bold text-accent w-6 sm:w-8 text-center shrink-0">
             {race.round}
           </span>
-          <div>
-            <h3 className="font-bold text-sm uppercase tracking-wide">{race.name}</h3>
-            <div className="flex items-center gap-2 text-xs text-foreground-muted mt-0.5">
-              <MapPin size={10} />
-              <span>{race.date}</span>
+          <div className="min-w-0">
+            <h3 className="font-bold text-xs sm:text-sm uppercase tracking-wide truncate">{race.name}</h3>
+            <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-foreground-muted mt-0.5">
+              <MapPin size={10} className="shrink-0" />
+              <span className="truncate">{race.date}</span>
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           {hasResults ? (
-            <span className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-success">
-              <span className="w-2 h-2 rounded-full bg-success animate-pulse-dot" />
+            <span className="flex items-center gap-1.5 text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-success">
+              <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-success animate-pulse-dot" />
               Finished
             </span>
           ) : (
-            <span className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-foreground-muted">
+            <span className="flex items-center gap-1.5 text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-foreground-muted">
               <Clock size={12} />
               Scheduled
             </span>
@@ -51,27 +51,29 @@ export function RaceCard({ race, prediction, scored, isCarryForward, compact }: 
       </div>
 
       {/* Card Body */}
-      <div className="px-4 py-3 bg-background-card">
-        {/* Results Table */}
+      <div className="px-3 sm:px-4 py-3 bg-background-card">
+        {/* Results Table (no prediction) */}
         {hasResults && race.results.length > 0 && !prediction && (
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-foreground-subtle text-xs uppercase tracking-wider">
-                <th className="text-left py-2 px-3 font-medium">Pos</th>
-                <th className="text-left py-2 px-3 font-medium">Driver</th>
-                <th className="text-right py-2 px-3 font-medium">Points</th>
-              </tr>
-            </thead>
-            <tbody>
-              {race.results.map((r, i) => (
-                <tr key={i} className="border-t border-border/50">
-                  <td className="py-2 px-3 font-mono font-bold text-accent">P{i + 1}</td>
-                  <td className="py-2 px-3 font-bold">{r.id}</td>
-                  <td className="py-2 px-3 text-right font-mono">{r.points}</td>
+          <div className="overflow-x-auto -mx-3 sm:mx-0">
+            <table className="w-full text-sm min-w-[260px]">
+              <thead>
+                <tr className="text-foreground-subtle text-xs uppercase tracking-wider">
+                  <th className="text-left py-2 px-3 font-medium">Pos</th>
+                  <th className="text-left py-2 px-3 font-medium">Driver</th>
+                  <th className="text-right py-2 px-3 font-medium">Points</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {race.results.map((r, i) => (
+                  <tr key={i} className="border-t border-border/50">
+                    <td className="py-2 px-3 font-mono font-bold text-accent">P{i + 1}</td>
+                    <td className="py-2 px-3 font-bold">{r.id}</td>
+                    <td className="py-2 px-3 text-right font-mono">{r.points}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
 
         {/* Prediction Breakdown */}
@@ -89,45 +91,47 @@ export function RaceCard({ race, prediction, scored, isCarryForward, compact }: 
                 <span>Late prediction (−50% penalty applied)</span>
               </div>
             )}
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-foreground-subtle text-xs uppercase tracking-wider">
-                  <th className="text-left py-2 px-3 font-medium">Slot</th>
-                  <th className="text-left py-2 px-3 font-medium">Driver</th>
-                  <th className="text-right py-2 px-3 font-medium">Pts</th>
-                  <th className="text-left py-2 px-3 font-medium">Detail</th>
-                </tr>
-              </thead>
-              <tbody>
-                {scored.breakdown.map((b) => (
-                  <tr key={b.pos} className="border-t border-border/50">
-                    <td className="py-2 px-3 font-mono font-bold text-accent">P{b.pos}</td>
-                    <td className="py-2 px-3 font-bold">{b.driver}</td>
-                    <td className="py-2 px-3 text-right font-mono">
-                      <span className={b.earned > 0 ? "text-success" : "text-foreground-subtle"}>
-                        {b.earned.toFixed(1)}
-                      </span>
-                    </td>
-                    <td className="py-2 px-3 text-xs">
-                      {b.detail.startsWith("Correct") ? (
-                        <span className="text-success font-medium">✓ {b.detail}</span>
-                      ) : b.detail.startsWith("In top 5") ? (
-                        <span className="text-warning font-medium">◐ {b.detail}</span>
-                      ) : (
-                        <span className="text-foreground-subtle">✗ {b.detail}</span>
-                      )}
-                    </td>
+            <div className="overflow-x-auto -mx-3 sm:mx-0">
+              <table className="w-full text-sm min-w-[260px]">
+                <thead>
+                  <tr className="text-foreground-subtle text-xs uppercase tracking-wider">
+                    <th className="text-left py-2 px-3 font-medium">Slot</th>
+                    <th className="text-left py-2 px-3 font-medium">Driver</th>
+                    <th className="text-right py-2 px-3 font-medium">Pts</th>
+                    <th className="text-left py-2 px-3 font-medium">Detail</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {scored.breakdown.map((b) => (
+                    <tr key={b.pos} className="border-t border-border/50">
+                      <td className="py-2 px-3 font-mono font-bold text-accent">P{b.pos}</td>
+                      <td className="py-2 px-3 font-bold">{b.driver}</td>
+                      <td className="py-2 px-3 text-right font-mono">
+                        <span className={b.earned > 0 ? "text-success" : "text-foreground-subtle"}>
+                          {b.earned.toFixed(1)}
+                        </span>
+                      </td>
+                      <td className="py-2 px-3 text-xs">
+                        {b.detail.startsWith("Correct") ? (
+                          <span className="text-success font-medium">✓ {b.detail}</span>
+                        ) : b.detail.startsWith("In top 5") ? (
+                          <span className="text-warning font-medium">◐ {b.detail}</span>
+                        ) : (
+                          <span className="text-foreground-subtle">✗ {b.detail}</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
             <div className="flex justify-between items-center mt-3 pt-3 border-t border-border">
               {scored.subtotal !== scored.finalTotal && (
                 <span className="text-xs text-foreground-muted">
                   Subtotal: {scored.subtotal.toFixed(1)}
                 </span>
               )}
-              <span className="flex items-center gap-2 text-sm font-bold">
+              <span className="flex items-center gap-2 text-sm font-bold ml-auto">
                 <Trophy size={14} className="text-gold" />
                 {scored.finalTotal.toFixed(1)} pts
               </span>

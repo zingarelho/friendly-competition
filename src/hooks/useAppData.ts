@@ -86,12 +86,11 @@ export function useAppData() {
       setData(prev => ({ ...prev, isRefreshing: true, error: null }));
       
       // Trigger refresh via API
-      const res = await fetch("/api/races?action=refresh", {
-        method: "POST",
-      });
+      const res = await fetch("/api/races?action=refresh");
       
       if (!res.ok) {
-        throw new Error(`Server error: ${res.status}`);
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || `Server error: ${res.status}`);
       }
       
       // Wait a moment then refetch all data

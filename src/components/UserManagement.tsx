@@ -16,7 +16,7 @@ export function UserManagement({ users, onAddUser, onRemoveUser }: UserManagemen
   const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
   const [error, setError] = useState("");
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     const trimmed = newUsername.trim();
     if (trimmed.length < 2) {
       setError("Username must be at least 2 characters");
@@ -30,9 +30,13 @@ export function UserManagement({ users, onAddUser, onRemoveUser }: UserManagemen
       setError("Username must be 20 characters or less");
       return;
     }
-    onAddUser(trimmed);
-    setNewUsername("");
-    setError("");
+    try {
+      await onAddUser(trimmed);
+      setNewUsername("");
+      setError("");
+    } catch {
+      setError("Failed to add user. Check database connection.");
+    }
   };
 
   return (

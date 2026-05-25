@@ -62,20 +62,23 @@ export default function Home() {
     <div className="min-h-screen flex flex-col">
       {/* Header */}
       <header className="border-b border-border bg-background-elevated/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="flex items-center justify-between h-14">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2">
-                <Zap size={20} className="text-accent" />
-                <span className="font-bold text-sm uppercase tracking-widest">
+        <div className="max-w-6xl mx-auto px-3 sm:px-6">
+          <div className="flex items-center justify-between h-12 sm:h-14">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                <Zap size={16} className="text-accent sm:size-[20px]" />
+                <span className="font-bold text-xs sm:text-sm uppercase tracking-widest truncate">
                   {SITE_NAME}
                 </span>
               </div>
-              <span className="text-foreground-subtle text-xs hidden sm:inline">
+              <span className="text-foreground-subtle text-[10px] sm:text-xs hidden sm:inline">
                 Fantasy F1 League
               </span>
             </div>
-            <div className="flex items-center gap-4 text-xs text-foreground-muted">
+            <div className="flex items-center gap-2 sm:gap-4 text-[10px] sm:text-xs text-foreground-muted shrink-0">
+              <span className="inline sm:hidden">
+                {finishedRaces}/{totalRaces}
+              </span>
               <span className="hidden sm:inline">
                 {finishedRaces}/{totalRaces} races
               </span>
@@ -102,7 +105,7 @@ export default function Home() {
       </div>
 
       {/* Main Content */}
-      <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 py-6 w-full">
+      <main className="flex-1 max-w-6xl mx-auto px-3 sm:px-6 py-4 sm:py-6 w-full">
         {activeTab === "leaderboard" && (
           <Leaderboard entries={leaderboard} />
         )}

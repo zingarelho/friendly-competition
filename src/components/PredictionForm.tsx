@@ -43,7 +43,7 @@ export function PredictionForm({ races, users, onSave, onRemove }: PredictionFor
     return picks.every((p) => isValidPick(p)) && !hasDuplicates();
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!selectedUserId || !selectedRace) {
       setStatus({ type: "error", message: "Please select a user and race" });
       return;
@@ -52,18 +52,25 @@ export function PredictionForm({ races, users, onSave, onRemove }: PredictionFor
       setStatus({ type: "error", message: "All 5 picks must be valid, unique driver codes" });
       return;
     }
-    onSave(selectedUserId, selectedRace, picks.map((p) => p.toUpperCase()), isLate);
-    setStatus({ type: "success", message: `Prediction saved!` });
-    // Reset form
-    setPicks(["", "", "", "", ""]);
-    setIsLate(false);
+    try {
+      await onSave(selectedUserId, selectedRace, picks.map((p) => p.toUpperCase()), isLate);
+      setStatus({ type: "success", message: "Prediction saved!" });
+      setPicks(["", "", "", "", ""]);
+      setIsLate(false);
+    } catch {
+      setStatus({ type: "error", message: "Failed to save prediction" });
+    }
     setTimeout(() => setStatus(null), 3000);
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!selectedUserId || !selectedRace) return;
-    onRemove(selectedUserId, selectedRace);
-    setStatus({ type: "success", message: "Prediction removed" });
+    try {
+      await onRemove(selectedUserId, selectedRace);
+      setStatus({ type: "success", message: "Prediction removed" });
+    } catch {
+      setStatus({ type: "error", message: "Failed to remove prediction" });
+    }
     setTimeout(() => setStatus(null), 3000);
   };
 

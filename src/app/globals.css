@@ -153,3 +153,12 @@ body {
 .text-muted {
   color: var(--foreground-muted);
 }
+
+/* Hide scrollbar for overflowing tabs on mobile */
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
