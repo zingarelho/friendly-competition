@@ -1,5 +1,7 @@
 node_modules/
 .next/
-data/
+/data/
 .env.local
 *.db
+.vercel
+.env*
