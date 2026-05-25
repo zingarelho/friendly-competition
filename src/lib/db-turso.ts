@@ -85,11 +85,18 @@ export async function getUsers(): Promise<User[]> {
 
 export async function addUser(username: string): Promise<User> {
   await ensureTables();
+  // Insert or reactivate user (without RETURNING for broader Turso compatibility)
+  await turso.execute({
+    sql: "INSERT INTO users (username) VALUES (?) ON CONFLICT(username) DO UPDATE SET is_active = 1",
+    args: [username],
+  });
+  // Fetch the user back
   const result = await turso.execute({
-    sql: "INSERT INTO users (username) VALUES (?) ON CONFLICT(username) DO UPDATE SET is_active = 1 RETURNING id, username, is_active, created_at",
+    sql: "SELECT id, username, is_active, created_at FROM users WHERE username = ?",
     args: [username],
   });
   const row = result.rows[0];
+  if (!row) throw new Error("User not found after insert");
   return {
     id: Number(row.id),
     username: String(row.username),

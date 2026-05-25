@@ -193,7 +193,8 @@ export function useAppData() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ type: "user", username }),
     });
-    if (!res.ok) throw new Error("Failed to add user");
+    const body = await res.json();
+    if (!res.ok) throw new Error(body.error || "Failed to add user");
     // Refetch users
     const usersRes = await fetch("/api/data?type=users").then(r => r.json());
     setData(prev => ({ ...prev, users: (usersRes as { data: User[] }).data }));
