@@ -1,14 +1,14 @@
-import Database from "better-sqlite3";
 import path from "path";
 import { FALLBACK_CALENDAR_2026, F1_2026_DRIVERS } from "./constants";
 import type { Race, RaceResult, Prediction, User, RaceWithResults } from "./types";
 
 const isVercel = process.env.VERCEL === "1" || process.env.NEXT_PUBLIC_VERCEL === "1";
 
-let sqliteDb: Database.Database | null = null;
+let sqliteDb: import("better-sqlite3").Database | null = null;
 
-function getSqliteDb(): Database.Database {
+async function getSqliteDb(): Promise<import("better-sqlite3").Database> {
   if (!sqliteDb) {
+    const { default: Database } = await import("better-sqlite3");
     const dbPath = path.join(process.cwd(), "data", "friendly.db");
     sqliteDb = new Database(dbPath);
     sqliteDb.pragma("journal_mode = WAL");
@@ -18,7 +18,7 @@ function getSqliteDb(): Database.Database {
   return sqliteDb;
 }
 
-function initializeSqliteTables(db: Database.Database) {
+function initializeSqliteTables(db: import("better-sqlite3").Database) {
   db.exec(`
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -81,7 +81,7 @@ export async function getUsers(): Promise<User[]> {
     const { getUsers: pg } = await import("./db-postgres");
     return pg();
   }
-  const db = getSqliteDb();
+  const db = await getSqliteDb();
   const rows = db.prepare("SELECT id, username, is_active as isActive, created_at as createdAt FROM users WHERE is_active = 1 ORDER BY username").all();
   return rows as User[];
 }
@@ -91,7 +91,7 @@ export async function addUser(username: string): Promise<User> {
     const { addUser: pg } = await import("./db-postgres");
     return pg(username);
   }
-  const db = getSqliteDb();
+  const db = await getSqliteDb();
   const stmt = db.prepare("INSERT OR IGNORE INTO users (username) VALUES (?)");
   stmt.run(username);
   const user = db.prepare("SELECT id, username, is_active as isActive, created_at as createdAt FROM users WHERE username = ?").get(username);
@@ -103,7 +103,7 @@ export async function removeUser(userId: number): Promise<void> {
     const { removeUser: pg } = await import("./db-postgres");
     return pg(userId);
   }
-  const db = getSqliteDb();
+  const db = await getSqliteDb();
   const txn = db.transaction(() => {
     db.prepare("UPDATE users SET is_active = 0 WHERE id = ?").run(userId);
   });
@@ -117,7 +117,7 @@ export async function getRaces(): Promise<Race[]> {
     const { getRaces: pg } = await import("./db-postgres");
     return pg();
   }
-  const db = getSqliteDb();
+  const db = await getSqliteDb();
   return db.prepare("SELECT round_num as round, name, date FROM races ORDER BY round_num").all() as Race[];
 }
 
@@ -126,7 +126,7 @@ export async function upsertRace(round: number, name: string, date: string): Pro
     const { upsertRace: pg } = await import("./db-postgres");
     return pg(round, name, date);
   }
-  const db = getSqliteDb();
+  const db = await getSqliteDb();
   db.prepare("INSERT OR REPLACE INTO races (round_num, name, date) VALUES (?, ?, ?)").run(round, name, date);
 }
 
@@ -135,7 +135,7 @@ export async function upsertRaces(races: Race[]): Promise<void> {
     const { upsertRaces: pg } = await import("./db-postgres");
     return pg(races);
   }
-  const db = getSqliteDb();
+  const db = await getSqliteDb();
   const stmt = db.prepare("INSERT OR REPLACE INTO races (round_num, name, date) VALUES (?, ?, ?)");
   const txn = db.transaction((r: Race[]) => {
     for (const race of r) {
@@ -152,7 +152,7 @@ export async function getResults(): Promise<Record<number, RaceResult[]>> {
     const { getResults: pg } = await import("./db-postgres");
     return pg();
   }
-  const db = getSqliteDb();
+  const db = await getSqliteDb();
   const rows = db.prepare("SELECT round_num, position, driver_id, points FROM results ORDER BY round_num, position").all() as {
     round_num: number; position: number; driver_id: string; points: number;
   }[];
@@ -169,7 +169,7 @@ export async function saveResults(round: number, results: RaceResult[]): Promise
     const { saveResults: pg } = await import("./db-postgres");
     return pg(round, results);
   }
-  const db = getSqliteDb();
+  const db = await getSqliteDb();
   const txn = db.transaction(() => {
     db.prepare("DELETE FROM results WHERE round_num = ?").run(round);
     const stmt = db.prepare("INSERT INTO results (round_num, position, driver_id, points) VALUES (?, ?, ?, ?)");
@@ -188,7 +188,7 @@ export async function getPredictions(): Promise<Prediction[]> {
     const { getPredictions: pg } = await import("./db-postgres");
     return pg();
   }
-  const db = getSqliteDb();
+  const db = await getSqliteDb();
   const rows = db.prepare(`
     SELECT p.id, p.user_id as userId, u.username, p.race_name as raceName, p.picks, p.is_late as isLate, p.created_at as createdAt
     FROM predictions p JOIN users u ON p.user_id = u.id
@@ -213,7 +213,7 @@ export async function savePrediction(
     const { savePrediction: pg } = await import("./db-postgres");
     return pg(userId, raceName, picks, isLate);
   }
-  const db = getSqliteDb();
+  const db = await getSqliteDb();
   db.prepare(`
     INSERT OR REPLACE INTO predictions (user_id, race_name, picks, is_late)
     VALUES (?, ?, ?, ?)
@@ -225,7 +225,7 @@ export async function removePrediction(userId: number, raceName: string): Promis
     const { removePrediction: pg } = await import("./db-postgres");
     return pg(userId, raceName);
   }
-  const db = getSqliteDb();
+  const db = await getSqliteDb();
   db.prepare("DELETE FROM predictions WHERE user_id = ? AND race_name = ?").run(userId, raceName);
 }
 
@@ -250,7 +250,7 @@ export async function getCachedData<T>(key: string, maxAgeMs: number = 300000): 
     const { getCachedData: pg } = await import("./db-postgres");
     return pg<T>(key, maxAgeMs);
   }
-  const db = getSqliteDb();
+  const db = await getSqliteDb();
   const row = db.prepare("SELECT data, fetched_at FROM api_cache WHERE key = ?").get(key) as { data: string; fetched_at: string } | undefined;
   if (!row) return null;
   const age = Date.now() - new Date(row.fetched_at).getTime();
@@ -263,6 +263,6 @@ export async function setCachedData(key: string, data: unknown): Promise<void> {
     const { setCachedData: pg } = await import("./db-postgres");
     return pg(key, data);
   }
-  const db = getSqliteDb();
+  const db = await getSqliteDb();
   db.prepare("INSERT OR REPLACE INTO api_cache (key, data, fetched_at) VALUES (?, ?, datetime('now'))").run(key, JSON.stringify(data));
 }
