@@ -2,16 +2,17 @@
 
 import { useState } from "react";
 import type { RaceWithResults } from "@/lib/types";
-import { RaceCard } from "./RaceCard";
+import { RaceCard} from "./RaceCard";
 import { RefreshCw, Loader2 } from "lucide-react";
 
 interface RaceInfoProps {
   races: RaceWithResults[];
   onRefresh: () => Promise<void>;
+  onRefreshSingle: () => Promise<void>;
   isRefreshing: boolean; // New prop
 }
 
-export function RaceInfo({ races, onRefresh, isRefreshing }: RaceInfoProps) {
+export function RaceInfo({ races, onRefresh, onRefreshSingle, isRefreshing }: RaceInfoProps) {
   const [activeTab, setActiveTab] = useState<"all" | "finished" | "scheduled">(
     "all"
   );
@@ -28,7 +29,8 @@ export function RaceInfo({ races, onRefresh, isRefreshing }: RaceInfoProps) {
         <h2 className="text-2xl font-bold text-white">Race Calendar & Results</h2>
         <div className="flex space-x-2 text-sm">
           <button
-            onClick={() => setActiveTab("all")}
+            onClick={() => setActiveTab("all")
+          }
             className={`btn-ghost ${
               activeTab === "all" ? "bg-red-900/20" : ""
             }`}
@@ -36,7 +38,8 @@ export function RaceInfo({ races, onRefresh, isRefreshing }: RaceInfoProps) {
             All
           </button>
           <button
-            onClick={() => setActiveTab("finished")}
+            onClick={() => setActiveTab("finished")
+          }
             className={`btn-ghost ${
               activeTab === "finished" ? "bg-red-900/20" : ""
             }`}
@@ -44,7 +47,8 @@ export function RaceInfo({ races, onRefresh, isRefreshing }: RaceInfoProps) {
             Finished
           </button>
           <button
-            onClick={() => setActiveTab("scheduled")}
+            onClick={() => setActiveTab("scheduled")
+          }
             className={`btn-ghost ${
               activeTab === "scheduled" ? "bg-red-900/20" : ""
             }`}

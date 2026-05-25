@@ -46,9 +46,6 @@
 ## Phase 2: Core Features (Next Quarter)
 
 ### 🏆 Competition Mechanics
-- [ ] Head-to-head duels: Pair users randomly each round, track win/loss record
-- [ ] Transfer/Wildcard: Allow one "joker" race per season where points are doubled
-- [ ] League settings: Adjustable scoring system (e.g., custom points per position)
 - [ ] Tie-breaking rules: Most correct P1s, then P2s, etc.
 
 ### 📈 Analytics & History

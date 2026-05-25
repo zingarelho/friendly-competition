@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from "react";
 import type { RaceWithResults, User, Prediction, LeaderboardEntry } from "@/lib/types";
 import { calculatePoints } from "@/lib/scoring";
-import { getCachedData, setCachedData } from "@/lib/db-sqlite";
 
 interface AppData {
   races: RaceWithResults[];
@@ -153,7 +152,7 @@ export function useAppData() {
     // Initialize race points for each user
     races.forEach(race => {
       userMap.forEach((userData) => {
-        userMap.get(userData.username)!.racePoints[race.round] = 0;
+        userData.racePoints[race.round] = 0;
       });
     });
 
@@ -188,8 +187,69 @@ export function useAppData() {
       .sort((a, b) => b.totalPoints - a.totalPoints);
   }
 
+  // Additional API helpers
+  const addUser = useCallback(async (username: string) => {
+    const res = await fetch("/api/data", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: "user", username }),
+    });
+    if (!res.ok) throw new Error("Failed to add user");
+    // Refetch users
+    const usersRes = await fetch("/api/data?type=users").then(r => r.json());
+    setData(prev => ({ ...prev, users: usersRes as User[] }));
+  }, []);
+
+  const removeUser = useCallback(async (userId: number) => {
+    const res = await fetch(`/api/data?type=user&userId=${userId}`, {
+      method: "DELETE",
+    });
+    if (!res.ok) throw new Error("Failed to remove user");
+    const usersRes = await fetch("/api/data?type=users").then(r => r.json());
+    setData(prev => ({ ...prev, users: usersRes as User[] }));
+  }, []);
+
+  const savePrediction = useCallback(async (
+    userId: number,
+    raceName: string,
+    picks: string[],
+    isLate: boolean
+  ) => {
+    const res = await fetch("/api/data", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: "prediction", userId, raceName, picks, isLate }),
+    });
+    if (!res.ok) throw new Error("Failed to save prediction");
+    // Refetch predictions and recalculate
+    const predictionsRes = await fetch("/api/data?type=predictions").then(r => r.json());
+    setData(prev => {
+      const predictions = predictionsRes as Prediction[];
+      const leaderboard = calculateLeaderboard(prev.races, prev.users, predictions);
+      return { ...prev, predictions, leaderboard };
+    });
+  }, []);
+
+  const removePrediction = useCallback(async (userId: number, raceName: string) => {
+    const res = await fetch(`/api/data?type=prediction&userId=${userId}&raceName=${encodeURIComponent(raceName)}`, {
+      method: "DELETE",
+    });
+    if (!res.ok) throw new Error("Failed to remove prediction");
+    const predictionsRes = await fetch("/api/data?type=predictions").then(r => r.json());
+    setData(prev => {
+      const predictions = predictionsRes as Prediction[];
+      const leaderboard = calculateLeaderboard(prev.races, prev.users, predictions);
+      return { ...prev, predictions, leaderboard };
+    });
+  }, []);
+
   return {
     ...data,
-    refreshAllData,
+    refreshFromAPI: refreshAllData,
+    refreshSingleRace: refreshAllData,
+    addUser,
+    removeUser,
+    savePrediction,
+    removePrediction,
   };
 }
