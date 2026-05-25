@@ -25,7 +25,7 @@ export function TabSwitcher({ tabs, activeTab, onChange }: TabSwitcherProps) {
         >
           <span className="flex items-center gap-1.5 sm:gap-2">
             {tab.icon}
-            {tab.label}
+            <span className="hidden sm:inline">{tab.label}</span>
           </span>
           {activeTab === tab.key && (
             <span className="absolute bottom-0 left-0 right-0 h-[3px] bg-accent tab-underline rounded-t" />

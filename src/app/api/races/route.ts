@@ -82,6 +82,15 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ data: seasons });
       }
 
+      case "create-season": {
+        const newSeason = parseInt(searchParams.get("season") || "0");
+        if (newSeason < 2026 || newSeason > 2099) {
+          return NextResponse.json({ error: "Invalid season" }, { status: 400 });
+        }
+        await seedFallbackCalendar(newSeason);
+        return NextResponse.json({ success: true, season: newSeason });
+      }
+
       default:
         return NextResponse.json({ error: "Unknown action" }, { status: 400 });
     }

@@ -12,25 +12,23 @@ export function SeasonSwitcher({ activeSeason, seasons, onChange }: SeasonSwitch
   if (seasons.length === 0) return null;
 
   return (
-    <div className="flex items-center gap-1.5 sm:gap-2">
+    <div className="flex items-center gap-1.5">
       <Calendar size={12} className="text-foreground-muted shrink-0" />
-      <div className="flex gap-0.5 sm:gap-1">
+      <select
+        value={activeSeason}
+        onChange={(e) => onChange(parseInt(e.target.value))}
+        className="
+          bg-background-card border border-border rounded px-2 py-1 text-[11px] sm:text-xs font-semibold
+          appearance-none cursor-pointer focus:outline-none focus:border-accent transition-colors
+          text-foreground
+        "
+      >
         {seasons.map((s) => (
-          <button
-            key={s}
-            onClick={() => onChange(s)}
-            className={`
-              px-2 sm:px-3 py-1 text-[11px] sm:text-xs font-semibold rounded transition-colors
-              ${s === activeSeason
-                ? "bg-accent text-white"
-                : "bg-background-card text-foreground-muted hover:text-foreground border border-border"
-              }
-            `}
-          >
-            {s}
-          </button>
+          <option key={s} value={s}>
+            {s} Season
+          </option>
         ))}
-      </div>
+      </select>
     </div>
   );
 }

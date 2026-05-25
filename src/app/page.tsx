@@ -6,15 +6,15 @@ import { TabSwitcher } from "@/components/TabSwitcher";
 import { Leaderboard } from "@/components/Leaderboard";
 import { PredictionsView } from "@/components/PredictionsView";
 import { RaceInfo } from "@/components/RaceInfo";
-import { UserManagement } from "@/components/UserManagement";
 import { PredictionForm } from "@/components/PredictionForm";
+import { AdminPanel } from "@/components/AdminPanel";
 import { SeasonSwitcher } from "@/components/SeasonSwitcher";
 import { CURRENT_SEASON } from "@/lib/constants";
 import {
   Trophy,
   ClipboardList,
   Flag,
-  Users,
+  Settings,
   Send,
   Loader2,
   Zap,
@@ -25,10 +25,8 @@ const TABS = [
   { key: "predictions", label: "Predictions", icon: <ClipboardList size={14} /> },
   { key: "submit", label: "Submit", icon: <Send size={14} /> },
   { key: "raceinfo", label: "Races", icon: <Flag size={14} /> },
-  { key: "users", label: "Users", icon: <Users size={14} /> },
+  { key: "users", label: "Admin", icon: <Settings size={14} /> },
 ];
-
-const AVAILABLE_SEASONS = [2026, 2027];
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("leaderboard");
@@ -40,7 +38,9 @@ export default function Home() {
     isLoading,
     isRefreshing,
     activeSeason,
+    availableSeasons,
     switchSeason,
+    createSeason,
     refreshFromAPI,
     refreshSingleRace,
     addUser,
@@ -73,17 +73,17 @@ export default function Home() {
               <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                 <Zap size={16} className="text-accent sm:size-[20px]" />
                 <span className="font-bold text-xs sm:text-sm uppercase tracking-widest truncate">
-                  {activeSeason}
+                  Friendly Competition
                 </span>
               </div>
-              <span className="text-foreground-subtle text-[10px] sm:text-xs hidden sm:inline">
-                Fantasy F1 League
+              <span className="text-foreground-subtle text-[10px] sm:text-xs">
+                {activeSeason} Season
               </span>
             </div>
             <div className="flex items-center gap-2 sm:gap-4 shrink-0">
               <SeasonSwitcher
                 activeSeason={activeSeason}
-                seasons={AVAILABLE_SEASONS}
+                seasons={availableSeasons}
                 onChange={switchSeason}
               />
               <div className="flex items-center gap-2 sm:gap-4 text-[10px] sm:text-xs text-foreground-muted">
@@ -147,10 +147,12 @@ export default function Home() {
         )}
 
         {activeTab === "users" && (
-          <UserManagement
+          <AdminPanel
             users={users}
+            availableSeasons={availableSeasons}
             onAddUser={addUser}
             onRemoveUser={removeUser}
+            onCreateSeason={createSeason}
           />
         )}
       </main>

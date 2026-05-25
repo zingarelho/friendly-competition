@@ -17,6 +17,7 @@ interface AppData {
 
 export function useAppData(initialSeason: number = CURRENT_SEASON) {
   const [activeSeason, setActiveSeason] = useState(initialSeason);
+  const [availableSeasons, setAvailableSeasons] = useState<number[]>([2026]);
   const [data, setData] = useState<AppData>({
     races: [],
     users: [],
@@ -67,6 +68,18 @@ export function useAppData(initialSeason: number = CURRENT_SEASON) {
   useEffect(() => {
     loadSeasonData(activeSeason);
   }, [activeSeason, loadSeasonData]);
+
+  // Fetch available seasons on mount
+  useEffect(() => {
+    fetch("/api/races?action=seasons")
+      .then(r => r.json())
+      .then(res => {
+        if (res.data && Array.isArray(res.data) && res.data.length > 0) {
+          setAvailableSeasons(res.data);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // Switch season
   const switchSeason = useCallback((season: number) => {
@@ -233,10 +246,25 @@ export function useAppData(initialSeason: number = CURRENT_SEASON) {
     });
   }, []);
 
+  // Create new season
+  const createSeason = useCallback(async (season: number) => {
+    const res = await fetch(`/api/races?action=create-season&season=${season}`);
+    const body = await res.json();
+    if (!res.ok) throw new Error(body.error || "Failed to create season");
+    // Refresh seasons list and switch to new season
+    const seasonsRes = await fetch("/api/races?action=seasons").then(r => r.json());
+    if (seasonsRes.data && Array.isArray(seasonsRes.data)) {
+      setAvailableSeasons(seasonsRes.data);
+    }
+    setActiveSeason(season);
+  }, []);
+
   return {
     ...data,
     activeSeason,
+    availableSeasons,
     switchSeason,
+    createSeason,
     refreshFromAPI,
     refreshSingleRace: refreshFromAPI,
     addUser,
