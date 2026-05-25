@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import type { RaceWithResults, User } from "@/lib/types";
+import type { Driver } from "@/lib/types";
 import { DRIVERS_BY_SEASON } from "@/lib/constants";
 import { Send, Trash2, Check, AlertTriangle } from "lucide-react";
 
@@ -22,7 +23,18 @@ export function PredictionForm({ races, users, season, onSave, onRemove }: Predi
 
   const drivers = DRIVERS_BY_SEASON[season] ?? [];
 
-  const availableRaces = races.filter((r) => r.status === "scheduled");
+  // Group drivers by team and sort alphabetically
+  const driversByTeam = useMemo(() => {
+    const teams = new Map<string, Driver[]>();
+    drivers.forEach((d) => {
+      const list = teams.get(d.team) ?? [];
+      list.push(d);
+      teams.set(d.team, list);
+    });
+    return Array.from(teams.entries()).sort(([a], [b]) => a.localeCompare(b));
+  }, [drivers]);
+
+  const availableRaces = races;
 
   const handlePickChange = (index: number, code: string) => {
     const upper = code.toUpperCase();
@@ -120,12 +132,12 @@ export function PredictionForm({ races, users, season, onSave, onRemove }: Predi
               <option value="">Select race...</option>
               {availableRaces.map((r) => (
                 <option key={r.round} value={r.name}>
-                  Round {r.round} — {r.name} ({r.date})
+                  {r.status === "finished" ? "🏁" : "📅"} Round {r.round} — {r.name} ({r.date})
                 </option>
               ))}
             </select>
             {availableRaces.length === 0 && (
-              <p className="text-xs text-foreground-subtle mt-1">All races have been completed</p>
+              <p className="text-xs text-foreground-subtle mt-1">No races available for this season</p>
             )}
           </div>
         </div>
@@ -169,36 +181,47 @@ export function PredictionForm({ races, users, season, onSave, onRemove }: Predi
           )}
         </div>
 
-        {/* Driver quick-select */}
+        {/* Driver quick-select by team */}
         <div className="mb-5">
-          <label className="block text-xs font-medium text-foreground-muted mb-2">Quick Select</label>
-          <div className="flex flex-wrap gap-1.5">
-            {drivers.map((d) => {
-              const isUsed = picks.includes(d.code);
-              return (
-                <button
-                  key={d.code}
-                  onClick={() => {
-                    const emptyIdx = picks.findIndex((p) => p.length !== 3);
-                    if (emptyIdx >= 0 && !isUsed) {
-                      handlePickChange(emptyIdx, d.code);
-                    }
-                  }}
-                  disabled={isUsed}
-                  className={`
-                    px-2 py-1 text-xs font-mono font-bold rounded transition-colors
-                    ${isUsed
-                      ? "bg-accent/20 text-accent opacity-40 cursor-not-allowed"
-                      : "bg-background-card border border-border hover:border-accent text-foreground-muted hover:text-foreground"
-                    }
-                  `}
-                  style={{ borderTopColor: d.color, borderTopWidth: "2px", borderTopStyle: "solid" }}
-                  title={`${d.name} (${d.team})`}
-                >
-                  {d.code}
-                </button>
-              );
-            })}
+          <label className="block text-xs font-medium text-foreground-muted mb-3">
+            Quick Select Drivers
+          </label>
+          <div className="space-y-3">
+            {driversByTeam.map(([team, teamDrivers]) => (
+              <div key={team}>
+                <div className="text-[10px] font-semibold uppercase tracking-wider text-foreground-subtle mb-1.5 px-1">
+                  {team}
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {teamDrivers.map((d) => {
+                    const isUsed = picks.includes(d.code);
+                    return (
+                      <button
+                        key={d.code}
+                        onClick={() => {
+                          const emptyIdx = picks.findIndex((p) => p.length !== 3);
+                          if (emptyIdx >= 0 && !isUsed) {
+                            handlePickChange(emptyIdx, d.code);
+                          }
+                        }}
+                        disabled={isUsed}
+                        className={`
+                          px-3 py-1.5 text-sm font-mono font-bold rounded-md transition-colors
+                          ${isUsed
+                            ? "bg-accent/20 text-accent opacity-40 cursor-not-allowed"
+                            : "bg-background-card border border-border hover:border-accent text-foreground-muted hover:text-foreground"
+                          }
+                        `}
+                        style={{ borderLeftColor: d.color, borderLeftWidth: "3px", borderLeftStyle: "solid" }}
+                        title={`${d.name} (${d.team})`}
+                      >
+                        {d.code}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 

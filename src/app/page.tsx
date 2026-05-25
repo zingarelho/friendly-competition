@@ -21,11 +21,11 @@ import {
 } from "lucide-react";
 
 const TABS = [
-  { key: "leaderboard", label: "Leaderboard", icon: <Trophy size={14} /> },
-  { key: "predictions", label: "Predictions", icon: <ClipboardList size={14} /> },
-  { key: "submit", label: "Submit", icon: <Send size={14} /> },
-  { key: "raceinfo", label: "Races", icon: <Flag size={14} /> },
-  { key: "users", label: "Admin", icon: <Settings size={14} /> },
+  { key: "leaderboard", label: "Leaderboard", icon: <Trophy size={18} /> },
+  { key: "predictions", label: "Predictions", icon: <ClipboardList size={18} /> },
+  { key: "submit", label: "Submit", icon: <Send size={18} /> },
+  { key: "raceinfo", label: "Races", icon: <Flag size={18} /> },
+  { key: "users", label: "Admin", icon: <Settings size={18} /> },
 ];
 
 export default function Home() {

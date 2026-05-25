@@ -91,14 +91,14 @@ export function Leaderboard({ entries }: LeaderboardProps) {
             </div>
 
             {/* Mini race breakdown */}
-            <div className="flex gap-1 mt-3 flex-wrap">
+            <div className="flex gap-1.5 mt-3 flex-wrap">
               {Object.entries(entry.racePoints).map(([round, pts]) => (
                 <div
                   key={round}
                   title={`Round ${round}: ${pts.toFixed(1)} pts`}
                   className={`
-                    w-5 h-5 rounded text-[10px] font-mono flex items-center justify-center
-                    ${pts > 0 ? "bg-accent/20 text-accent" : "bg-border/30 text-foreground-subtle"}
+                    w-7 h-7 rounded-md text-xs font-mono flex items-center justify-center
+                    ${pts > 0 ? "bg-accent/20 text-accent font-semibold" : "bg-border/30 text-foreground-subtle"}
                   `}
                 >
                   {parseInt(round)}

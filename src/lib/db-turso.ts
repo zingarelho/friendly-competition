@@ -230,7 +230,7 @@ export async function savePrediction(
           VALUES (?, ?, ?, ?, ?)
           ON CONFLICT(user_id, season, race_name)
           DO UPDATE SET picks = excluded.picks, is_late = excluded.is_late`,
-    args: [userId, season, JSON.stringify(picks), isLate ? 1 : 0],
+    args: [userId, season, raceName, JSON.stringify(picks), isLate ? 1 : 0],
   });
 }
 
