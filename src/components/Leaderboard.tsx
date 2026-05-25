@@ -77,9 +77,6 @@ export function Leaderboard({ entries }: LeaderboardProps) {
                 {getRankIcon(rank)}
                 <div>
                   <span className="font-bold text-sm">{entry.username}</span>
-                  <div className="text-xs text-foreground-muted mt-0.5">
-                    {Object.values(entry.racePoints).filter((p) => p > 0).length} races scored
-                  </div>
                 </div>
               </div>
               <div className="text-right">
@@ -88,22 +85,6 @@ export function Leaderboard({ entries }: LeaderboardProps) {
                 </span>
                 <span className="text-xs text-foreground-muted ml-1">pts</span>
               </div>
-            </div>
-
-            {/* Mini race breakdown */}
-            <div className="flex gap-1.5 mt-3 flex-wrap">
-              {Object.entries(entry.racePoints).map(([round, pts]) => (
-                <div
-                  key={round}
-                  title={`Round ${round}: ${pts.toFixed(1)} pts`}
-                  className={`
-                    w-7 h-7 rounded-md text-xs font-mono flex items-center justify-center
-                    ${pts > 0 ? "bg-accent/20 text-accent font-semibold" : "bg-border/30 text-foreground-subtle"}
-                  `}
-                >
-                  {parseInt(round)}
-                </div>
-              ))}
             </div>
           </div>
         );

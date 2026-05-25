@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { fetchCalendar, fetchResults, fetchAllResults } from "@/lib/jolpica";
+import { fetchCalendar, fetchResults, fetchAllResults, fetchDrivers } from "@/lib/jolpica";
 import { getCachedData, setCachedData, upsertRaces, saveResults, getRacesWithResults, seedFallbackCalendar } from "@/lib/db-sqlite";
 
 export async function GET(request: NextRequest) {
@@ -89,6 +89,26 @@ export async function GET(request: NextRequest) {
         }
         await seedFallbackCalendar(newSeason);
         return NextResponse.json({ success: true, season: newSeason });
+      }
+
+      case "drivers": {
+        const cached = await getCachedData(`drivers_${season}`, 300000);
+        if (cached) {
+          return NextResponse.json({ data: cached, source: "cache" });
+        }
+        const drivers = await fetchDrivers(String(season));
+        if (drivers.length > 0) {
+          await setCachedData(`drivers_${season}`, drivers);
+        }
+        return NextResponse.json({ data: drivers, source: drivers.length > 0 ? "api" : "empty" });
+      }
+
+      case "refresh-drivers": {
+        const drivers = await fetchDrivers(String(season));
+        if (drivers.length > 0) {
+          await setCachedData(`drivers_${season}`, drivers);
+        }
+        return NextResponse.json({ data: drivers, source: "api" });
       }
 
       default:

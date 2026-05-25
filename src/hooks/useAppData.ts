@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import type { RaceWithResults, User, Prediction, LeaderboardEntry } from "@/lib/types";
+import type { RaceWithResults, User, Prediction, LeaderboardEntry, Driver } from "@/lib/types";
 import { calculatePoints } from "@/lib/scoring";
 import { CURRENT_SEASON } from "@/lib/constants";
 
@@ -18,6 +18,7 @@ interface AppData {
 export function useAppData(initialSeason: number = CURRENT_SEASON) {
   const [activeSeason, setActiveSeason] = useState(initialSeason);
   const [availableSeasons, setAvailableSeasons] = useState<number[]>([2026]);
+  const [drivers, setDrivers] = useState<Driver[]>([]);
   const [data, setData] = useState<AppData>({
     races: [],
     users: [],
@@ -80,6 +81,18 @@ export function useAppData(initialSeason: number = CURRENT_SEASON) {
       })
       .catch(() => {});
   }, []);
+
+  // Fetch drivers when season changes
+  useEffect(() => {
+    fetch(`/api/races?action=drivers&season=${activeSeason}`)
+      .then(r => r.json())
+      .then(res => {
+        if (res.data && Array.isArray(res.data) && res.data.length > 0) {
+          setDrivers(res.data);
+        }
+      })
+      .catch(() => {});
+  }, [activeSeason]);
 
   // Switch season
   const switchSeason = useCallback((season: number) => {
@@ -259,12 +272,24 @@ export function useAppData(initialSeason: number = CURRENT_SEASON) {
     setActiveSeason(season);
   }, []);
 
+  // Refresh drivers from API
+  const refreshDrivers = useCallback(async () => {
+    const res = await fetch(`/api/races?action=refresh-drivers&season=${activeSeason}`);
+    const body = await res.json();
+    if (!res.ok) throw new Error("Failed to refresh drivers");
+    if (body.data && Array.isArray(body.data)) {
+      setDrivers(body.data);
+    }
+  }, [activeSeason]);
+
   return {
     ...data,
     activeSeason,
     availableSeasons,
+    drivers,
     switchSeason,
     createSeason,
+    refreshDrivers,
     refreshFromAPI,
     refreshSingleRace: refreshFromAPI,
     addUser,

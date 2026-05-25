@@ -18,6 +18,7 @@ import {
   Send,
   Loader2,
   Zap,
+  RefreshCcw,
 } from "lucide-react";
 
 const TABS = [
@@ -39,8 +40,10 @@ export default function Home() {
     isRefreshing,
     activeSeason,
     availableSeasons,
+    drivers,
     switchSeason,
     createSeason,
+    refreshDrivers,
     refreshFromAPI,
     refreshSingleRace,
     addUser,
@@ -66,50 +69,49 @@ export default function Home() {
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header */}
-      <header className="border-b border-border bg-background-elevated/80 backdrop-blur-sm sticky top-0 z-50">
+<header className="border-b border-border bg-background-elevated/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-3 sm:px-6">
-          <div className="flex items-center justify-between h-12 sm:h-14 gap-2">
-            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-              <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-                <Zap size={16} className="text-accent sm:size-[20px]" />
+          <div className="flex items-center justify-between h-11 sm:h-14 gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-3 min-w-0">
+              <div className="flex items-center gap-1.5 shrink-0">
+                <Zap size={18} className="text-accent" />
                 <span className="font-bold text-xs sm:text-sm uppercase tracking-widest truncate">
                   Friendly Competition
                 </span>
               </div>
-              <span className="text-foreground-subtle text-[10px] sm:text-xs">
+              <span className="text-foreground-subtle text-[10px] sm:text-xs hidden sm:inline">
                 {activeSeason} Season
               </span>
             </div>
             <div className="flex items-center gap-2 sm:gap-4 shrink-0">
-              <SeasonSwitcher
-                activeSeason={activeSeason}
-                seasons={availableSeasons}
-                onChange={switchSeason}
-              />
-              <div className="flex items-center gap-2 sm:gap-4 text-[10px] sm:text-xs text-foreground-muted">
-                <span className="hidden sm:inline">
-                  {finishedRaces}/{totalRaces} races
-                </span>
-                <span className="hidden sm:inline">
-                  {users.length} users
-                </span>
-              </div>
+              <span className="text-foreground-muted text-[10px] sm:text-xs hidden sm:inline">
+                {finishedRaces}/{totalRaces} races
+              </span>
             </div>
           </div>
         </div>
       </header>
 
-      {/* Tab Navigation */}
-      <div className="border-b border-border bg-background/80 backdrop-blur-sm sticky top-12 sm:top-14 z-40">
-        <div className="max-w-6xl mx-auto px-3 sm:px-6">
+      {/* Tab Navigation + Season Switcher */}
+      <div className="border-b border-border bg-background/80 backdrop-blur-sm sticky top-11 sm:top-14 z-40">
+        <div className="max-w-6xl mx-auto px-3 sm:px-6 flex items-end justify-between">
           <TabSwitcher
             tabs={TABS}
             activeTab={activeTab}
             onChange={setActiveTab}
           />
+          <div className="flex items-center gap-2 pb-2 sm:pb-3 shrink-0">
+            <span className="text-foreground-muted text-[10px] sm:text-xs sm:hidden">
+              {finishedRaces}/{totalRaces}
+            </span>
+            <SeasonSwitcher
+              activeSeason={activeSeason}
+              seasons={availableSeasons}
+              onChange={switchSeason}
+            />
+          </div>
         </div>
       </div>
-
       {/* Main Content */}
       <main className="flex-1 max-w-6xl mx-auto px-3 sm:px-6 py-4 sm:py-6 w-full">
         {activeTab === "leaderboard" && (
@@ -131,6 +133,7 @@ export default function Home() {
             races={races}
             users={users}
             season={activeSeason}
+            drivers={drivers}
             onSave={savePrediction}
             onRemove={removePrediction}
           />
@@ -150,9 +153,11 @@ export default function Home() {
           <AdminPanel
             users={users}
             availableSeasons={availableSeasons}
+            drivers={drivers}
             onAddUser={addUser}
             onRemoveUser={removeUser}
             onCreateSeason={createSeason}
+            onRefreshDrivers={refreshDrivers}
           />
         )}
       </main>

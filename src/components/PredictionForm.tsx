@@ -1,27 +1,24 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import type { RaceWithResults, User } from "@/lib/types";
-import type { Driver } from "@/lib/types";
-import { DRIVERS_BY_SEASON } from "@/lib/constants";
+import type { RaceWithResults, User, Driver } from "@/lib/types";
 import { Send, Trash2, Check, AlertTriangle } from "lucide-react";
 
 interface PredictionFormProps {
   races: RaceWithResults[];
   users: User[];
   season: number;
+  drivers: Driver[];
   onSave: (userId: number, raceName: string, picks: string[], isLate: boolean) => void;
   onRemove: (userId: number, season: number, raceName: string) => void;
 }
 
-export function PredictionForm({ races, users, season, onSave, onRemove }: PredictionFormProps) {
+export function PredictionForm({ races, users, season, drivers, onSave, onRemove }: PredictionFormProps) {
   const [selectedUserId, setSelectedUserId] = useState<number>(0);
   const [selectedRace, setSelectedRace] = useState<string>("");
   const [picks, setPicks] = useState<string[]>(["", "", "", "", ""]);
   const [isLate, setIsLate] = useState(false);
   const [status, setStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
-
-  const drivers = DRIVERS_BY_SEASON[season] ?? [];
 
   // Group drivers by team and sort alphabetically
   const driversByTeam = useMemo(() => {

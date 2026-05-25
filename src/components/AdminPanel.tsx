@@ -3,27 +3,33 @@
 import { useState } from "react";
 import { UserManagement } from "./UserManagement";
 import type { User } from "@/lib/types";
-import { CalendarPlus, Check, X, Loader2 } from "lucide-react";
+import type { Driver } from "@/lib/types";
+import { CalendarPlus, Check, X, Loader2, Users, RefreshCcw } from "lucide-react";
 
 interface AdminPanelProps {
   users: User[];
   availableSeasons: number[];
+  drivers: Driver[];
   onAddUser: (username: string) => Promise<void>;
   onRemoveUser: (userId: number) => void;
   onCreateSeason: (season: number) => Promise<void>;
+  onRefreshDrivers: () => Promise<void>;
 }
 
 export function AdminPanel({
   users,
   availableSeasons,
+  drivers,
   onAddUser,
   onRemoveUser,
   onCreateSeason,
+  onRefreshDrivers,
 }: AdminPanelProps) {
   const [newSeason, setNewSeason] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [isRefreshingDrivers, setIsRefreshingDrivers] = useState(false);
 
   const nextYear = new Date().getFullYear() + 1;
   const suggestedYear = Math.max(
@@ -55,6 +61,29 @@ export function AdminPanel({
       setIsCreating(false);
     }
   };
+
+  const handleRefreshDrivers = async () => {
+    setIsRefreshingDrivers(true);
+    try {
+      await onRefreshDrivers();
+      setSuccess("Drivers refreshed from Jolpica API!");
+    } catch {
+      setError("Failed to refresh drivers");
+    } finally {
+      setIsRefreshingDrivers(false);
+    }
+  };
+
+  // Group drivers by team
+  const teams = new Map<string, Driver[]>();
+  drivers.forEach((d) => {
+    const list = teams.get(d.team) ?? [];
+    list.push(d);
+    teams.set(d.team, list);
+  });
+  const driversByTeam = Array.from(teams.entries()).sort(([a], [b]) =>
+    a.localeCompare(b)
+  );
 
   return (
     <div className="animate-fade-in space-y-6">
@@ -125,6 +154,64 @@ export function AdminPanel({
                 )}
               </span>
             ))
+          )}
+        </div>
+      </div>
+
+      {/* Driver List */}
+      <div className="bg-background-elevated border border-border rounded-lg p-5">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-foreground-muted flex items-center gap-2">
+            <Users size={14} />
+            Drivers ({drivers.length})
+          </h3>
+          <button
+            onClick={handleRefreshDrivers}
+            disabled={isRefreshingDrivers}
+            className="
+              px-3 py-1.5 text-xs font-semibold rounded-lg
+              bg-background-card border border-border
+              hover:border-accent text-foreground-muted hover:text-foreground
+              transition-colors flex items-center gap-1.5
+              disabled:opacity-50 disabled:cursor-not-allowed
+            "
+          >
+            {isRefreshingDrivers ? (
+              <Loader2 size={12} className="animate-spin" />
+            ) : (
+              <RefreshCcw size={12} />
+            )}
+            Refresh
+          </button>
+        </div>
+        <div className="space-y-2 max-h-64 overflow-y-auto">
+          {driversByTeam.map(([team, teamDrivers]) => (
+            <div key={team}>
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-foreground-subtle mb-1">
+                {team}
+              </div>
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                {teamDrivers.map((d) => (
+                  <span
+                    key={d.code}
+                    className="
+                      inline-flex items-center gap-1.5 px-2 py-0.5
+                      text-xs font-mono font-bold rounded
+                      bg-background-card border border-border/50
+                    "
+                    style={{ borderLeftColor: d.color, borderLeftWidth: "3px", borderLeftStyle: "solid" }}
+                    title={d.name}
+                  >
+                    {d.code}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ))}
+          {drivers.length === 0 && (
+            <p className="text-xs text-foreground-subtle italic">
+              No drivers loaded. Click Refresh to fetch from Jolpica API.
+            </p>
           )}
         </div>
       </div>

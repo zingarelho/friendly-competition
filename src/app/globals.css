@@ -162,3 +162,23 @@ body {
 .scrollbar-none::-webkit-scrollbar {
   display: none;
 }
+
+/* Custom dropdown arrow for all native <select> elements */
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%238a8a8a' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 14px;
+  padding-right: 28px !important;
+  -webkit-appearance: none;
+  appearance: none;
+}
+/* Remove default arrow in Firefox */
+select {
+  -moz-appearance: none;
+  text-overflow: '';
+}
+/* Remove default arrow in IE */
+select::-ms-expand {
+  display: none;
+}
