@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { RaceWithResults } from "@/lib/types";
-import { RaceCard} from "./RaceCard";
+import { RaceCard } from "./RaceCard";
 import { RefreshCw, Loader2 } from "lucide-react";
 
 interface RaceInfoProps {
@@ -29,28 +29,25 @@ export function RaceInfo({ races, onRefresh, onRefreshSingle, isRefreshing }: Ra
         <h2 className="text-2xl font-bold text-white">Race Calendar & Results</h2>
         <div className="flex space-x-2 text-sm">
           <button
-            onClick={() => setActiveTab("all")
-          }
+            onClick={() => setActiveTab("all")}
             className={`btn-ghost ${
-              activeTab === "all" ? "bg-red-900/20" : ""
+              activeTab === "all" ? "bg-accent/10 text-accent" : ""
             }`}
           >
             All
           </button>
           <button
-            onClick={() => setActiveTab("finished")
-          }
+            onClick={() => setActiveTab("finished")}
             className={`btn-ghost ${
-              activeTab === "finished" ? "bg-red-900/20" : ""
+              activeTab === "finished" ? "bg-accent/10 text-accent" : ""
             }`}
           >
             Finished
           </button>
           <button
-            onClick={() => setActiveTab("scheduled")
-          }
+            onClick={() => setActiveTab("scheduled")}
             className={`btn-ghost ${
-              activeTab === "scheduled" ? "bg-red-900/20" : ""
+              activeTab === "scheduled" ? "bg-accent/10 text-accent" : ""
             }`}
           >
             Scheduled
@@ -59,7 +56,7 @@ export function RaceInfo({ races, onRefresh, onRefreshSingle, isRefreshing }: Ra
       </div>
 
       {filteredRaces.length === 0 ? (
-        <p className="text-center text-muted py-8">
+        <p className="text-center text-foreground-muted py-8">
           No races match the selected filter.
         </p>
       ) : (

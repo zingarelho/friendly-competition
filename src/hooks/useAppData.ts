@@ -45,9 +45,9 @@ export function useAppData() {
 
         if (!isMounted) return;
 
-        const races = racesRes as RaceWithResults[];
-        const users = usersRes as User[];
-        const predictions = predictionsRes as Prediction[];
+        const races = (racesRes as { data: RaceWithResults[] }).data;
+        const users = (usersRes as { data: User[] }).data;
+        const predictions = (predictionsRes as { data: Prediction[] }).data;
 
         // Calculate leaderboard
         const leaderboard = calculateLeaderboard(races, users, predictions);
@@ -107,9 +107,9 @@ export function useAppData() {
         fetch("/api/data?type=predictions").then(r => r.json()),
       ]);
 
-      const races = racesRes as RaceWithResults[];
-      const users = usersRes as User[];
-      const predictions = predictionsRes as Prediction[];
+      const races = (racesRes as { data: RaceWithResults[] }).data;
+      const users = (usersRes as { data: User[] }).data;
+      const predictions = (predictionsRes as { data: Prediction[] }).data;
       const leaderboard = calculateLeaderboard(races, users, predictions);
 
       setData({
@@ -197,7 +197,7 @@ export function useAppData() {
     if (!res.ok) throw new Error("Failed to add user");
     // Refetch users
     const usersRes = await fetch("/api/data?type=users").then(r => r.json());
-    setData(prev => ({ ...prev, users: usersRes as User[] }));
+    setData(prev => ({ ...prev, users: (usersRes as { data: User[] }).data }));
   }, []);
 
   const removeUser = useCallback(async (userId: number) => {
@@ -206,7 +206,7 @@ export function useAppData() {
     });
     if (!res.ok) throw new Error("Failed to remove user");
     const usersRes = await fetch("/api/data?type=users").then(r => r.json());
-    setData(prev => ({ ...prev, users: usersRes as User[] }));
+    setData(prev => ({ ...prev, users: (usersRes as { data: User[] }).data }));
   }, []);
 
   const savePrediction = useCallback(async (
@@ -224,7 +224,7 @@ export function useAppData() {
     // Refetch predictions and recalculate
     const predictionsRes = await fetch("/api/data?type=predictions").then(r => r.json());
     setData(prev => {
-      const predictions = predictionsRes as Prediction[];
+      const predictions = (predictionsRes as { data: Prediction[] }).data;
       const leaderboard = calculateLeaderboard(prev.races, prev.users, predictions);
       return { ...prev, predictions, leaderboard };
     });
@@ -237,7 +237,7 @@ export function useAppData() {
     if (!res.ok) throw new Error("Failed to remove prediction");
     const predictionsRes = await fetch("/api/data?type=predictions").then(r => r.json());
     setData(prev => {
-      const predictions = predictionsRes as Prediction[];
+      const predictions = (predictionsRes as { data: Prediction[] }).data;
       const leaderboard = calculateLeaderboard(prev.races, prev.users, predictions);
       return { ...prev, predictions, leaderboard };
     });
