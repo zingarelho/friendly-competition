@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import type { User } from "@/lib/types";
-import { F1_2026_DRIVERS } from "@/lib/constants";
 import { UserPlus, Trash2, Users, Check, X } from "lucide-react";
 
 interface UserManagementProps {
@@ -132,35 +131,6 @@ export function UserManagement({ users, onAddUser, onRemoveUser }: UserManagemen
             ))}
           </div>
         )}
-      </div>
-
-      {/* Driver reference */}
-      <div className="mt-6 bg-background-elevated border border-border rounded-lg overflow-hidden">
-        <div className="px-5 py-3 border-b border-border">
-          <span className="text-sm font-semibold uppercase tracking-wider text-foreground-muted">
-            2026 Driver Codes Reference
-          </span>
-        </div>
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-0">
-          {F1_2026_DRIVERS.map((d, i) => (
-            <div
-              key={d.code}
-              className={`flex items-center gap-3 px-4 py-2.5 ${
-                i < F1_2026_DRIVERS.length - 1 ? "border-b border-border/30" : ""
-              }`}
-            >
-              <div
-                className="w-1 h-6 rounded-full"
-                style={{ backgroundColor: d.color }}
-              />
-              <span className="font-mono font-bold text-accent text-sm w-10">{d.code}</span>
-              <div className="min-w-0">
-                <div className="text-sm font-medium truncate">{d.name}</div>
-                <div className="text-[10px] text-foreground-subtle truncate">{d.team}</div>
-              </div>
-            </div>
-          ))}
-        </div>
       </div>
     </div>
   );

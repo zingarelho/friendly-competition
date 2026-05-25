@@ -23,7 +23,7 @@ const TABS = [
   { key: "leaderboard", label: "Leaderboard", icon: <Trophy size={14} /> },
   { key: "predictions", label: "Predictions", icon: <ClipboardList size={14} /> },
   { key: "submit", label: "Submit", icon: <Send size={14} /> },
-  { key: "raceinfo", label: "Race Info", icon: <Flag size={14} /> },
+  { key: "raceinfo", label: "Races", icon: <Flag size={14} /> },
   { key: "users", label: "Users", icon: <Users size={14} /> },
 ];
 
