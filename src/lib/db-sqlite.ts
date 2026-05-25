@@ -78,7 +78,7 @@ function initializeSqliteTables(db: import("better-sqlite3").Database) {
 
 export async function getUsers(): Promise<User[]> {
   if (isVercel) {
-    const { getUsers: pg } = await import("./db-postgres");
+    const { getUsers: pg } = await import("./db-turso");
     return pg();
   }
   const db = await getSqliteDb();
@@ -88,7 +88,7 @@ export async function getUsers(): Promise<User[]> {
 
 export async function addUser(username: string): Promise<User> {
   if (isVercel) {
-    const { addUser: pg } = await import("./db-postgres");
+    const { addUser: pg } = await import("./db-turso");
     return pg(username);
   }
   const db = await getSqliteDb();
@@ -100,7 +100,7 @@ export async function addUser(username: string): Promise<User> {
 
 export async function removeUser(userId: number): Promise<void> {
   if (isVercel) {
-    const { removeUser: pg } = await import("./db-postgres");
+    const { removeUser: pg } = await import("./db-turso");
     return pg(userId);
   }
   const db = await getSqliteDb();
@@ -114,7 +114,7 @@ export async function removeUser(userId: number): Promise<void> {
 
 export async function getRaces(): Promise<Race[]> {
   if (isVercel) {
-    const { getRaces: pg } = await import("./db-postgres");
+    const { getRaces: pg } = await import("./db-turso");
     return pg();
   }
   const db = await getSqliteDb();
@@ -123,7 +123,7 @@ export async function getRaces(): Promise<Race[]> {
 
 export async function upsertRace(round: number, name: string, date: string): Promise<void> {
   if (isVercel) {
-    const { upsertRace: pg } = await import("./db-postgres");
+    const { upsertRace: pg } = await import("./db-turso");
     return pg(round, name, date);
   }
   const db = await getSqliteDb();
@@ -132,7 +132,7 @@ export async function upsertRace(round: number, name: string, date: string): Pro
 
 export async function upsertRaces(races: Race[]): Promise<void> {
   if (isVercel) {
-    const { upsertRaces: pg } = await import("./db-postgres");
+    const { upsertRaces: pg } = await import("./db-turso");
     return pg(races);
   }
   const db = await getSqliteDb();
@@ -149,7 +149,7 @@ export async function upsertRaces(races: Race[]): Promise<void> {
 
 export async function getResults(): Promise<Record<number, RaceResult[]>> {
   if (isVercel) {
-    const { getResults: pg } = await import("./db-postgres");
+    const { getResults: pg } = await import("./db-turso");
     return pg();
   }
   const db = await getSqliteDb();
@@ -166,7 +166,7 @@ export async function getResults(): Promise<Record<number, RaceResult[]>> {
 
 export async function saveResults(round: number, results: RaceResult[]): Promise<void> {
   if (isVercel) {
-    const { saveResults: pg } = await import("./db-postgres");
+    const { saveResults: pg } = await import("./db-turso");
     return pg(round, results);
   }
   const db = await getSqliteDb();
@@ -185,7 +185,7 @@ export async function saveResults(round: number, results: RaceResult[]): Promise
 
 export async function getPredictions(): Promise<Prediction[]> {
   if (isVercel) {
-    const { getPredictions: pg } = await import("./db-postgres");
+    const { getPredictions: pg } = await import("./db-turso");
     return pg();
   }
   const db = await getSqliteDb();
@@ -210,7 +210,7 @@ export async function savePrediction(
   isLate: boolean
 ): Promise<void> {
   if (isVercel) {
-    const { savePrediction: pg } = await import("./db-postgres");
+    const { savePrediction: pg } = await import("./db-turso");
     return pg(userId, raceName, picks, isLate);
   }
   const db = await getSqliteDb();
@@ -222,7 +222,7 @@ export async function savePrediction(
 
 export async function removePrediction(userId: number, raceName: string): Promise<void> {
   if (isVercel) {
-    const { removePrediction: pg } = await import("./db-postgres");
+    const { removePrediction: pg } = await import("./db-turso");
     return pg(userId, raceName);
   }
   const db = await getSqliteDb();
@@ -247,7 +247,7 @@ export async function getRacesWithResults(): Promise<RaceWithResults[]> {
 
 export async function getCachedData<T>(key: string, maxAgeMs: number = 300000): Promise<T | null> {
   if (isVercel) {
-    const { getCachedData: pg } = await import("./db-postgres");
+    const { getCachedData: pg } = await import("./db-turso");
     return pg<T>(key, maxAgeMs);
   }
   const db = await getSqliteDb();
@@ -260,7 +260,7 @@ export async function getCachedData<T>(key: string, maxAgeMs: number = 300000): 
 
 export async function setCachedData(key: string, data: unknown): Promise<void> {
   if (isVercel) {
-    const { setCachedData: pg } = await import("./db-postgres");
+    const { setCachedData: pg } = await import("./db-turso");
     return pg(key, data);
   }
   const db = await getSqliteDb();
