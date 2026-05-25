@@ -8,7 +8,8 @@ import { PredictionsView } from "@/components/PredictionsView";
 import { RaceInfo } from "@/components/RaceInfo";
 import { UserManagement } from "@/components/UserManagement";
 import { PredictionForm } from "@/components/PredictionForm";
-import { SITE_NAME } from "@/lib/constants";
+import { SeasonSwitcher } from "@/components/SeasonSwitcher";
+import { CURRENT_SEASON } from "@/lib/constants";
 import {
   Trophy,
   ClipboardList,
@@ -27,6 +28,8 @@ const TABS = [
   { key: "users", label: "Users", icon: <Users size={14} /> },
 ];
 
+const AVAILABLE_SEASONS = [2026, 2027];
+
 export default function Home() {
   const [activeTab, setActiveTab] = useState("leaderboard");
   const {
@@ -36,20 +39,22 @@ export default function Home() {
     leaderboard,
     isLoading,
     isRefreshing,
+    activeSeason,
+    switchSeason,
     refreshFromAPI,
     refreshSingleRace,
     addUser,
     removeUser,
     savePrediction,
     removePrediction,
-  } = useAppData();
+  } = useAppData(CURRENT_SEASON);
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <Loader2 size={40} className="animate-spin text-accent mx-auto mb-4" />
-          <p className="text-foreground-muted text-sm">Loading {SITE_NAME}...</p>
+          <p className="text-foreground-muted text-sm">Loading {activeSeason} Season...</p>
         </div>
       </div>
     );
@@ -63,39 +68,40 @@ export default function Home() {
       {/* Header */}
       <header className="border-b border-border bg-background-elevated/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-3 sm:px-6">
-          <div className="flex items-center justify-between h-12 sm:h-14">
+          <div className="flex items-center justify-between h-12 sm:h-14 gap-2">
             <div className="flex items-center gap-2 sm:gap-3 min-w-0">
               <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                 <Zap size={16} className="text-accent sm:size-[20px]" />
                 <span className="font-bold text-xs sm:text-sm uppercase tracking-widest truncate">
-                  {SITE_NAME}
+                  {activeSeason}
                 </span>
               </div>
               <span className="text-foreground-subtle text-[10px] sm:text-xs hidden sm:inline">
                 Fantasy F1 League
               </span>
             </div>
-            <div className="flex items-center gap-2 sm:gap-4 text-[10px] sm:text-xs text-foreground-muted shrink-0">
-              <span className="inline sm:hidden">
-                {finishedRaces}/{totalRaces}
-              </span>
-              <span className="hidden sm:inline">
-                {finishedRaces}/{totalRaces} races
-              </span>
-              <span className="hidden sm:inline">
-                {users.length} users
-              </span>
-              <span className="hidden sm:inline">
-                {predictions.length} predictions
-              </span>
+            <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+              <SeasonSwitcher
+                activeSeason={activeSeason}
+                seasons={AVAILABLE_SEASONS}
+                onChange={switchSeason}
+              />
+              <div className="flex items-center gap-2 sm:gap-4 text-[10px] sm:text-xs text-foreground-muted">
+                <span className="hidden sm:inline">
+                  {finishedRaces}/{totalRaces} races
+                </span>
+                <span className="hidden sm:inline">
+                  {users.length} users
+                </span>
+              </div>
             </div>
           </div>
         </div>
       </header>
 
       {/* Tab Navigation */}
-      <div className="border-b border-border bg-background/80 backdrop-blur-sm sticky top-14 z-40">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+      <div className="border-b border-border bg-background/80 backdrop-blur-sm sticky top-12 sm:top-14 z-40">
+        <div className="max-w-6xl mx-auto px-3 sm:px-6">
           <TabSwitcher
             tabs={TABS}
             activeTab={activeTab}
@@ -107,7 +113,7 @@ export default function Home() {
       {/* Main Content */}
       <main className="flex-1 max-w-6xl mx-auto px-3 sm:px-6 py-4 sm:py-6 w-full">
         {activeTab === "leaderboard" && (
-          <Leaderboard entries={leaderboard} />
+          <Leaderboard entries={leaderboard} season={activeSeason} />
         )}
 
         {activeTab === "predictions" && (
@@ -115,6 +121,7 @@ export default function Home() {
             races={races}
             users={users}
             predictions={predictions}
+            season={activeSeason}
             onRemovePrediction={removePrediction}
           />
         )}
@@ -123,6 +130,7 @@ export default function Home() {
           <PredictionForm
             races={races}
             users={users}
+            season={activeSeason}
             onSave={savePrediction}
             onRemove={removePrediction}
           />
@@ -131,6 +139,7 @@ export default function Home() {
         {activeTab === "raceinfo" && (
           <RaceInfo
             races={races}
+            season={activeSeason}
             onRefresh={refreshFromAPI}
             onRefreshSingle={refreshSingleRace}
             isRefreshing={isRefreshing}
@@ -148,7 +157,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="border-t border-border py-4 text-center text-xs text-foreground-subtle">
-        <p>{SITE_NAME} — Powered by Jolpica API • Built with Next.js</p>
+        <p>{activeSeason} Season — Powered by Jolpica API • Built with Next.js</p>
       </footer>
     </div>
   );

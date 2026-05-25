@@ -9,6 +9,7 @@ export interface Race {
   round: number;
   name: string;
   date: string;
+  season: number;
 }
 
 export interface RaceResult {
@@ -21,6 +22,7 @@ export interface Prediction {
   userId: number;
   username: string;
   raceName: string;
+  season: number;
   picks: string[];
   isLate: boolean;
   createdAt?: string;
@@ -52,6 +54,7 @@ export interface ScoredPrediction {
 export interface LeaderboardEntry {
   userId: number;
   username: string;
+  season: number;
   totalPoints: number;
   racePoints: Record<number, number>;
 }

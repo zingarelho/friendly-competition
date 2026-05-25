@@ -6,6 +6,7 @@ import { Trophy, Medal, TrendingUp } from "lucide-react";
 
 interface LeaderboardProps {
   entries: LeaderboardEntry[];
+  season: number;
 }
 
 export function Leaderboard({ entries }: LeaderboardProps) {

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import type { RaceWithResults, User, Prediction, LeaderboardEntry } from "@/lib/types";
 import { calculatePoints } from "@/lib/scoring";
+import { CURRENT_SEASON } from "@/lib/constants";
 
 interface AppData {
   races: RaceWithResults[];
@@ -10,11 +11,12 @@ interface AppData {
   predictions: Prediction[];
   leaderboard: LeaderboardEntry[];
   error: string | null;
-  isLoading: boolean;      // Initial load
-  isRefreshing: boolean;   // Manual refresh
+  isLoading: boolean;
+  isRefreshing: boolean;
 }
 
-export function useAppData() {
+export function useAppData(initialSeason: number = CURRENT_SEASON) {
+  const [activeSeason, setActiveSeason] = useState(initialSeason);
   const [data, setData] = useState<AppData>({
     races: [],
     users: [],
@@ -25,91 +27,76 @@ export function useAppData() {
     isRefreshing: false,
   });
 
+  const loadSeasonData = useCallback(async (season: number) => {
+    try {
+      setData(prev => ({ ...prev, isLoading: true, error: null }));
+
+      const [racesRes, usersRes, predictionsRes] = await Promise.all([
+        fetch(`/api/races?action=races&season=${season}`).then(r => r.json()),
+        fetch("/api/data?type=users").then(r => r.json()),
+        fetch(`/api/data?type=predictions&season=${season}`).then(r => r.json()),
+      ]);
+
+      const races = (racesRes as { data: RaceWithResults[] }).data ?? [];
+      const users = (usersRes as { data: User[] }).data ?? [];
+      const predictions = (predictionsRes as { data: Prediction[] }).data ?? [];
+
+      const leaderboard = calculateLeaderboard(races, users, predictions, season);
+
+      setData({
+        races,
+        users,
+        predictions,
+        leaderboard,
+        error: null,
+        isLoading: false,
+        isRefreshing: false,
+      });
+    } catch (err) {
+      console.error("Failed to load data:", err);
+      setData(prev => ({
+        ...prev,
+        error: "Failed to load data. Please try refreshing.",
+        isLoading: false,
+        isRefreshing: false,
+      }));
+    }
+  }, []);
+
   // Initial load
   useEffect(() => {
-    let isMounted = true;
-    const loadInitialData = async () => {
-      try {
-        setData(prev => ({ ...prev, isLoading: true, error: null }));
-        
-        // Fetch all data in parallel
-        const [
-          racesRes,
-          usersRes,
-          predictionsRes,
-        ] = await Promise.all([
-          fetch("/api/races?action=races").then(r => r.json()),
-          fetch("/api/data?type=users").then(r => r.json()),
-          fetch("/api/data?type=predictions").then(r => r.json()),
-        ]);
+    loadSeasonData(activeSeason);
+  }, [activeSeason, loadSeasonData]);
 
-        if (!isMounted) return;
-
-        const races = (racesRes as { data: RaceWithResults[] }).data;
-        const users = (usersRes as { data: User[] }).data;
-        const predictions = (predictionsRes as { data: Prediction[] }).data;
-
-        // Calculate leaderboard
-        const leaderboard = calculateLeaderboard(races, users, predictions);
-
-        setData({
-          races,
-          users,
-          predictions,
-          leaderboard,
-          error: null,
-          isLoading: false,
-          isRefreshing: false,
-        });
-      } catch (err) {
-        if (!isMounted) return;
-        console.error("Failed to load initial data:", err);
-        setData(prev => ({ 
-          ...prev, 
-          error: "Failed to load data. Please try refreshing.", 
-          isLoading: false,
-          isRefreshing: false 
-        }));
-      }
-    };
-
-    loadInitialData();
-    
-    return () => {
-      isMounted = false;
-    };
+  // Switch season
+  const switchSeason = useCallback((season: number) => {
+    setActiveSeason(season);
   }, []);
 
   // Refresh all data from Jolpica
-  const refreshAllData = useCallback(async () => {
+  const refreshFromAPI = useCallback(async () => {
     try {
       setData(prev => ({ ...prev, isRefreshing: true, error: null }));
-      
-      // Trigger refresh via API
-      const res = await fetch("/api/races?action=refresh");
-      
+
+      const res = await fetch(`/api/races?action=refresh&season=${activeSeason}`);
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         throw new Error(err.error || `Server error: ${res.status}`);
       }
-      
+
       // Wait a moment then refetch all data
       await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      const [
-        racesRes,
-        usersRes,
-        predictionsRes,
-      ] = await Promise.all([
-        fetch("/api/races?action=races").then(r => r.json()),
+
+      const [racesRes, usersRes, predictionsRes] = await Promise.all([
+        fetch(`/api/races?action=races&season=${activeSeason}`).then(r => r.json()),
         fetch("/api/data?type=users").then(r => r.json()),
-        fetch("/api/data?type=predictions").then(r => r.json()),
+        fetch(`/api/data?type=predictions&season=${activeSeason}`).then(r => r.json()),
       ]);
 
-      const races = (racesRes as { data: RaceWithResults[] }).data;
-      const users = (usersRes as { data: User[] }).data;
-      const predictions = (predictionsRes as { data: Prediction[] }).data;
-      const leaderboard = calculateLeaderboard(races, users, predictions);
+      const races = (racesRes as { data: RaceWithResults[] }).data ?? [];
+      const users = (usersRes as { data: User[] }).data ?? [];
+      const predictions = (predictionsRes as { data: Prediction[] }).data ?? [];
+      const leaderboard = calculateLeaderboard(races, users, predictions, activeSeason);
 
       setData({
         races,
@@ -122,24 +109,24 @@ export function useAppData() {
       });
     } catch (err) {
       console.error("Failed to refresh data:", err);
-      setData(prev => ({ 
-        ...prev, 
-        error: "Failed to refresh data. Please try again.", 
+      setData(prev => ({
+        ...prev,
+        error: "Failed to refresh data. Please try again.",
         isLoading: false,
-        isRefreshing: false 
+        isRefreshing: false,
       }));
     }
-  }, []);
+  }, [activeSeason]);
 
   // Helper: Calculate leaderboard from races, users, predictions
   function calculateLeaderboard(
     races: RaceWithResults[],
     users: User[],
-    predictions: Prediction[]
+    predictions: Prediction[],
+    season: number
   ): LeaderboardEntry[] {
-    // Map userId -> { username, totalPoints, racePoints }
     const userMap = new Map<number, { username: string; totalPoints: number; racePoints: Record<number, number> }>();
-    
+
     users.forEach(user => {
       userMap.set(user.id, {
         username: user.username,
@@ -148,38 +135,35 @@ export function useAppData() {
       });
     });
 
-    // Initialize race points for each user
     races.forEach(race => {
       userMap.forEach((userData) => {
         userData.racePoints[race.round] = 0;
       });
     });
 
-    // Calculate points per race per user
     predictions.forEach(prediction => {
       const userData = userMap.get(prediction.userId);
       if (!userData) return;
-      
+
       const race = races.find(r => r.name === prediction.raceName);
       if (!race) return;
-      
-      // Calculate points for this prediction
+
       const points = calculatePoints(
         prediction.picks,
         race.results,
         prediction.isLate,
-        false // isMissing handled elsewhere
+        false
       );
-      
+
       userData.totalPoints += points;
       userData.racePoints[race.round] = points;
     });
 
-    // Convert to array and sort by total points descending
     return Array.from(userMap.entries())
       .map(([userId, { username, totalPoints, racePoints }]) => ({
         userId,
         username,
+        season,
         totalPoints,
         racePoints,
       }))
@@ -191,14 +175,13 @@ export function useAppData() {
     const res = await fetch("/api/data", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ type: "user", username }),
+      body: JSON.stringify({ type: "user", username, season: activeSeason }),
     });
     const body = await res.json();
     if (!res.ok) throw new Error(body.error || "Failed to add user");
-    // Refetch users
     const usersRes = await fetch("/api/data?type=users").then(r => r.json());
-    setData(prev => ({ ...prev, users: (usersRes as { data: User[] }).data }));
-  }, []);
+    setData(prev => ({ ...prev, users: (usersRes as { data: User[] }).data ?? [] }));
+  }, [activeSeason]);
 
   const removeUser = useCallback(async (userId: number) => {
     const res = await fetch(`/api/data?type=user&userId=${userId}`, {
@@ -206,7 +189,7 @@ export function useAppData() {
     });
     if (!res.ok) throw new Error("Failed to remove user");
     const usersRes = await fetch("/api/data?type=users").then(r => r.json());
-    setData(prev => ({ ...prev, users: (usersRes as { data: User[] }).data }));
+    setData(prev => ({ ...prev, users: (usersRes as { data: User[] }).data ?? [] }));
   }, []);
 
   const savePrediction = useCallback(async (
@@ -218,35 +201,44 @@ export function useAppData() {
     const res = await fetch("/api/data", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ type: "prediction", userId, raceName, picks, isLate }),
+      body: JSON.stringify({
+        type: "prediction",
+        userId,
+        season: activeSeason,
+        raceName,
+        picks,
+        isLate,
+      }),
     });
     if (!res.ok) throw new Error("Failed to save prediction");
-    // Refetch predictions and recalculate
-    const predictionsRes = await fetch("/api/data?type=predictions").then(r => r.json());
+    const predictionsRes = await fetch(`/api/data?type=predictions&season=${activeSeason}`).then(r => r.json());
     setData(prev => {
-      const predictions = (predictionsRes as { data: Prediction[] }).data;
-      const leaderboard = calculateLeaderboard(prev.races, prev.users, predictions);
+      const predictions = (predictionsRes as { data: Prediction[] }).data ?? [];
+      const leaderboard = calculateLeaderboard(prev.races, prev.users, predictions, activeSeason);
       return { ...prev, predictions, leaderboard };
     });
-  }, []);
+  }, [activeSeason]);
 
-  const removePrediction = useCallback(async (userId: number, raceName: string) => {
-    const res = await fetch(`/api/data?type=prediction&userId=${userId}&raceName=${encodeURIComponent(raceName)}`, {
-      method: "DELETE",
-    });
+  const removePrediction = useCallback(async (userId: number, season: number, raceName: string) => {
+    const res = await fetch(
+      `/api/data?type=prediction&userId=${userId}&raceName=${encodeURIComponent(raceName)}&season=${season}`,
+      { method: "DELETE" }
+    );
     if (!res.ok) throw new Error("Failed to remove prediction");
-    const predictionsRes = await fetch("/api/data?type=predictions").then(r => r.json());
+    const predictionsRes = await fetch(`/api/data?type=predictions&season=${season}`).then(r => r.json());
     setData(prev => {
-      const predictions = (predictionsRes as { data: Prediction[] }).data;
-      const leaderboard = calculateLeaderboard(prev.races, prev.users, predictions);
+      const predictions = (predictionsRes as { data: Prediction[] }).data ?? [];
+      const leaderboard = calculateLeaderboard(prev.races, prev.users, predictions, season);
       return { ...prev, predictions, leaderboard };
     });
   }, []);
 
   return {
     ...data,
-    refreshFromAPI: refreshAllData,
-    refreshSingleRace: refreshAllData,
+    activeSeason,
+    switchSeason,
+    refreshFromAPI,
+    refreshSingleRace: refreshFromAPI,
     addUser,
     removeUser,
     savePrediction,

@@ -7,9 +7,10 @@ import { RefreshCw, Loader2 } from "lucide-react";
 
 interface RaceInfoProps {
   races: RaceWithResults[];
+  season: number;
   onRefresh: () => Promise<void>;
   onRefreshSingle: () => Promise<void>;
-  isRefreshing: boolean; // New prop
+  isRefreshing: boolean;
 }
 
 export function RaceInfo({ races, onRefresh, onRefreshSingle, isRefreshing }: RaceInfoProps) {

@@ -10,13 +10,15 @@ interface PredictionsViewProps {
   races: RaceWithResults[];
   users: User[];
   predictions: Prediction[];
-  onRemovePrediction: (userId: number, raceName: string) => void;
+  season: number;
+  onRemovePrediction: (userId: number, season: number, raceName: string) => void;
 }
 
 export function PredictionsView({
   races,
   users,
   predictions,
+  season,
   onRemovePrediction,
 }: PredictionsViewProps) {
   const [selectedUser, setSelectedUser] = useState<string>("");

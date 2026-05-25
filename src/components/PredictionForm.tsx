@@ -2,22 +2,25 @@
 
 import { useState } from "react";
 import type { RaceWithResults, User } from "@/lib/types";
-import { F1_2026_DRIVERS } from "@/lib/constants";
+import { DRIVERS_BY_SEASON } from "@/lib/constants";
 import { Send, Trash2, Check, AlertTriangle } from "lucide-react";
 
 interface PredictionFormProps {
   races: RaceWithResults[];
   users: User[];
+  season: number;
   onSave: (userId: number, raceName: string, picks: string[], isLate: boolean) => void;
-  onRemove: (userId: number, raceName: string) => void;
+  onRemove: (userId: number, season: number, raceName: string) => void;
 }
 
-export function PredictionForm({ races, users, onSave, onRemove }: PredictionFormProps) {
+export function PredictionForm({ races, users, season, onSave, onRemove }: PredictionFormProps) {
   const [selectedUserId, setSelectedUserId] = useState<number>(0);
   const [selectedRace, setSelectedRace] = useState<string>("");
   const [picks, setPicks] = useState<string[]>(["", "", "", "", ""]);
   const [isLate, setIsLate] = useState(false);
   const [status, setStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
+
+  const drivers = DRIVERS_BY_SEASON[season] ?? [];
 
   const availableRaces = races.filter((r) => r.status === "scheduled");
 
@@ -31,7 +34,7 @@ export function PredictionForm({ races, users, onSave, onRemove }: PredictionFor
 
   const isValidPick = (code: string) => {
     if (code.length !== 3) return false;
-    return F1_2026_DRIVERS.some((d) => d.code === code.toUpperCase());
+    return drivers.some((d) => d.code === code.toUpperCase());
   };
 
   const hasDuplicates = () => {
@@ -66,7 +69,7 @@ export function PredictionForm({ races, users, onSave, onRemove }: PredictionFor
   const handleDelete = async () => {
     if (!selectedUserId || !selectedRace) return;
     try {
-      await onRemove(selectedUserId, selectedRace);
+      await onRemove(selectedUserId, season, selectedRace);
       setStatus({ type: "success", message: "Prediction removed" });
     } catch {
       setStatus({ type: "error", message: "Failed to remove prediction" });
@@ -170,7 +173,7 @@ export function PredictionForm({ races, users, onSave, onRemove }: PredictionFor
         <div className="mb-5">
           <label className="block text-xs font-medium text-foreground-muted mb-2">Quick Select</label>
           <div className="flex flex-wrap gap-1.5">
-            {F1_2026_DRIVERS.map((d) => {
+            {drivers.map((d) => {
               const isUsed = picks.includes(d.code);
               return (
                 <button
