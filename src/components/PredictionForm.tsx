@@ -183,13 +183,13 @@ export function PredictionForm({ races, users, season, drivers, onSave, onRemove
           <label className="block text-xs font-medium text-foreground-muted mb-3">
             Quick Select Drivers
           </label>
-          <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
             {driversByTeam.map(([team, teamDrivers]) => (
               <div key={team}>
                 <div className="text-[10px] font-semibold uppercase tracking-wider text-foreground-subtle mb-1.5 px-1">
                   {team}
                 </div>
-                <div className="grid grid-cols-2 gap-1.5">
+                <div className="flex flex-wrap gap-1.5">
                   {teamDrivers.map((d) => {
                     const isUsed = picks.includes(d.code);
                     return (
