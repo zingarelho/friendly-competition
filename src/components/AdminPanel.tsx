@@ -40,8 +40,8 @@ export function AdminPanel({
 
   const handleCreateSeason = async () => {
     const year = parseInt(newSeason || String(suggestedYear));
-    if (isNaN(year) || year < 2026 || year > 2099) {
-      setError("Enter a valid year between 2026 and 2099");
+    if (isNaN(year) || year < 2000 || year > 2099) {
+      setError("Enter a valid year between 2000 and 2099");
       return;
     }
     if (availableSeasons.includes(year)) {
@@ -104,7 +104,7 @@ export function AdminPanel({
             }}
             onKeyDown={(e) => e.key === "Enter" && handleCreateSeason()}
             placeholder={String(suggestedYear)}
-            min={2026}
+            min={2000}
             max={2099}
             className="
               flex-1 bg-background-card border border-border rounded-lg px-4 py-2.5 text-sm

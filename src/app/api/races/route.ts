@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
         // Check a few known seasons for data
         const currentYear = new Date().getFullYear();
         const seasons = [];
-        for (let y = 2026; y <= currentYear + 1; y++) {
+        for (let y = 2000; y <= currentYear + 1; y++) {
           const races = await getRaces(y);
           if (races.length > 0) seasons.push(y);
         }
@@ -84,8 +84,8 @@ export async function GET(request: NextRequest) {
 
       case "create-season": {
         const newSeason = parseInt(searchParams.get("season") || "0");
-        if (newSeason < 2026 || newSeason > 2099) {
-          return NextResponse.json({ error: "Invalid season" }, { status: 400 });
+        if (newSeason < 2000 || newSeason > 2099) {
+          return NextResponse.json({ error: "Season must be a year between 2000 and 2099" }, { status: 400 });
         }
         await seedFallbackCalendar(newSeason);
         return NextResponse.json({ success: true, season: newSeason });
