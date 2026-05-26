@@ -189,7 +189,7 @@ export function PredictionForm({ races, users, season, drivers, onSave, onRemove
                 <div className="text-[10px] font-semibold uppercase tracking-wider text-foreground-subtle mb-1.5 px-1">
                   {team}
                 </div>
-                <div className="flex flex-wrap gap-1.5">
+                <div className="grid grid-cols-2 gap-1.5">
                   {teamDrivers.map((d) => {
                     const isUsed = picks.includes(d.code);
                     return (
